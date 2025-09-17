@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { sql, config } from './database';
+import { config, db } from './prisma';
 
 // Types
 export interface User {

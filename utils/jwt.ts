@@ -1,4 +1,4 @@
-import { config } from './database';
+import { config } from './prisma';
 
 // JWT utilities for client-side token handling
 // Note: In a real app, JWT signing/verification should be done server-side

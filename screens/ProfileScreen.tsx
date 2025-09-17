@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
-import { db, Profile } from '../utils/database';
+import { prisma } from '../utils/prisma';
 
 interface ProfileScreenProps {
   navigation: any;
@@ -27,18 +27,33 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     full_name: '',
   });
 
-  // Use profile from auth context
-  const { profile } = useAuth();
+  // Use profile from auth context - removed since we don't have profile in the new auth system
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        username: profile.username || '',
-        full_name: profile.full_name || '',
-      });
+    const loadProfile = async () => {
+      if (user) {
+        try {
+          const userProfile = await prisma.profile.findUnique({
+            where: { id: user.id }
+          });
+          
+          if (userProfile) {
+            setProfile(userProfile);
+            setFormData({
+              username: userProfile.username || '',
+              full_name: userProfile.fullName || '',
+            });
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      }
       setLoading(false);
-    }
-  }, [profile]);
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleSave = async () => {
     if (!user || !formData.username.trim()) {
@@ -48,11 +63,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
     setSaving(true);
     try {
-      await db.updateProfile(user.id, {
-        username: formData.username.trim(),
-        full_name: formData.full_name.trim() || undefined,
+      const updatedProfile = await prisma.profile.upsert({
+        where: { id: user.id },
+        update: {
+          username: formData.username.trim(),
+          fullName: formData.full_name.trim() || null,
+        },
+        create: {
+          id: user.id,
+          username: formData.username.trim(),
+          fullName: formData.full_name.trim() || null,
+        }
       });
 
+      setProfile(updatedProfile);
       setEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
@@ -73,8 +97,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
-            const { error } = await signOut();
-            if (error) {
+            try {
+              await signOut();
+            } catch (error) {
+              console.error('Sign out error:', error);
               Alert.alert('Error', 'Failed to sign out');
             }
           },

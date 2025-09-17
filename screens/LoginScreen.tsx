@@ -101,11 +101,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       if (error) {
         let errorMessage = 'Login failed. Please try again.';
         
-        if (error.message.includes('Invalid login credentials')) {
+        if ((error as any)?.message?.includes('Invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials.';
-        } else if (error.message.includes('Email not confirmed')) {
+        } else if ((error as any)?.message?.includes('Email not confirmed')) {
           errorMessage = 'Please verify your email address before signing in.';
-        } else if (error.message.includes('Too many requests')) {
+        } else if ((error as any)?.message?.includes('Too many requests')) {
           errorMessage = 'Too many login attempts. Please try again later.';
         }
         
@@ -122,7 +122,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        Alert.alert('Google Sign In Error', error.message);
+        Alert.alert('Google Sign In Error', (error as any)?.message || 'Google sign in failed');
       }
     } catch (err) {
       Alert.alert('Error', 'Google sign in failed. Please try again.');
@@ -133,7 +133,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithApple();
       if (error) {
-        Alert.alert('Apple Sign In Error', error.message);
+        Alert.alert('Apple Sign In Error', (error as any)?.message || 'Apple sign in failed');
       }
     } catch (err) {
       Alert.alert('Error', 'Apple sign in failed. Please try again.');

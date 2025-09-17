@@ -46,7 +46,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Sign Up Error', error.message);
+      Alert.alert('Sign Up Error', typeof error === 'string' ? error : (error as any)?.message || 'An error occurred');
     } else {
       Alert.alert(
         'Success',

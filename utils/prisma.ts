@@ -491,6 +491,13 @@ export class PrismaDatabase {
   }
 }
 
+// Configuration for backward compatibility
+export const config = {
+  databaseUrl: process.env.DATABASE_URL,
+  jwtSecret: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
+  apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3001/api',
+};
+
 // Export the database instance
 export const db = PrismaDatabase;
 

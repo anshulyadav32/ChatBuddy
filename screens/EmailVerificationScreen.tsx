@@ -36,7 +36,7 @@ export const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = (
     
     setResendLoading(false);
 
-    if (error && !error.message.includes('already registered')) {
+    if (error && !(error as any)?.message?.includes('already registered')) {
       Alert.alert('Error', 'Failed to resend verification email');
     } else {
       Alert.alert('Success', 'Verification email sent! Check your inbox.');

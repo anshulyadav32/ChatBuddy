@@ -34,11 +34,11 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navi
     }
 
     setLoading(true);
-    const { error } = await resetPassword(email);
+    const success = await resetPassword(email);
     setLoading(false);
 
-    if (error) {
-      Alert.alert('Error', error.message);
+    if (!success) {
+      Alert.alert('Error', 'Failed to send reset email');
     } else {
       setEmailSent(true);
       Alert.alert(

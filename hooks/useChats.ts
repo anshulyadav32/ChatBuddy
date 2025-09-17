@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, Chat, Profile } from '../utils/database';
+import { prisma, Chat, Profile } from '../utils/prisma';
 import { useAuth } from './useAuth';
 
 export const useChats = () => {
@@ -13,7 +13,30 @@ export const useChats = () => {
     // Fetch user's chats
     const fetchChats = async () => {
       try {
-        const chatList = await db.getUserChats(user.id);
+        const chatList = await prisma.chat.findMany({
+          where: {
+            participants: {
+              some: {
+                userId: user.id
+              }
+            }
+          },
+          include: {
+            participants: {
+              include: {
+                user: true
+              }
+            },
+            messages: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              include: {
+                sender: true
+              }
+            }
+          },
+          orderBy: { updatedAt: 'desc' }
+        });
         setChats(chatList);
       } catch (error) {
         console.error('Error fetching chats:', error);
@@ -36,16 +59,28 @@ export const useChats = () => {
     if (!user) return null;
 
     try {
-      // Create the chat
-      const chat = await db.createChat(isGroup, name);
-
-      // Add participants (including current user)
+      // Create the chat with participants
       const allParticipants = [user.id, ...participantIds];
       
-      for (const userId of allParticipants) {
-        const role = userId === user.id ? 'admin' : 'member';
-        await db.addChatParticipant(chat.id, userId, role);
-      }
+      const chat = await prisma.chat.create({
+        data: {
+          isGroup,
+          name,
+          participants: {
+            create: allParticipants.map((userId: string) => ({
+              userId,
+              role: userId === user.id ? 'ADMIN' as const : 'MEMBER' as const
+            }))
+          }
+        },
+        include: {
+          participants: {
+            include: {
+              user: true
+            }
+          }
+        }
+      });
 
       return chat;
     } catch (error) {
@@ -59,7 +94,25 @@ export const useChats = () => {
 
     try {
       // Check if a direct chat already exists between these users
-      const existingChat = await db.findDirectChat(user.id, otherUserId);
+      const existingChat = await prisma.chat.findFirst({
+        where: {
+          isGroup: false,
+          participants: {
+            every: {
+              userId: {
+                in: [user.id, otherUserId]
+              }
+            }
+          }
+        },
+        include: {
+          participants: {
+            include: {
+              user: true
+            }
+          }
+        }
+      });
 
       if (existingChat) {
         return existingChat;

@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useChats } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
-import { Chat } from '../lib/supabase';
+import { Chat } from '../utils/prisma';
 
 interface ChatListScreenProps {
   navigation: any;
@@ -20,17 +20,17 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
   const { chats, loading } = useChats();
   const { signOut } = useAuth();
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTime = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString([], { weekday: 'short' });
+      return dateObj.toLocaleDateString([], { weekday: 'short' });
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
   };
 
@@ -50,15 +50,15 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
           <Text style={styles.chatName}>
             {item.name || 'Direct Chat'}
           </Text>
-          {item.last_message_at && (
+          {item.lastMessageAt && (
             <Text style={styles.timestamp}>
-              {formatTime(item.last_message_at)}
+              {formatTime(item.lastMessageAt)}
             </Text>
           )}
         </View>
         
         <Text style={styles.lastMessage} numberOfLines={1}>
-          {item.last_message || 'No messages yet'}
+          {item.lastMessage || 'No messages yet'}
         </Text>
       </View>
     </TouchableOpacity>
@@ -67,7 +67,7 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#25D366" />
       </View>
     );
   }
@@ -81,13 +81,13 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
             style={styles.headerButton}
             onPress={() => navigation.navigate('NewChat')}
           >
-            <Ionicons name="add" size={24} color="#007AFF" />
+            <Ionicons name="add" size={24} color="#25D366" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Ionicons name="person-outline" size={24} color="#007AFF" />
+            <Ionicons name="person-outline" size={24} color="#25D366" />
           </TouchableOpacity>
         </View>
       </View>
@@ -113,31 +113,32 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0a0a0a', // WhatsApp dark background
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0a0a0a',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#202C33', // WhatsApp header background
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#2A3942',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#E9EDEF',
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 20,
   },
   headerButton: {
     padding: 4,
@@ -148,17 +149,17 @@ const styles = StyleSheet.create({
   chatItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    backgroundColor: '#111B21', // WhatsApp chat item background
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#2A3942',
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#25D366', // WhatsApp green
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -179,16 +180,16 @@ const styles = StyleSheet.create({
   },
   chatName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '500',
+    color: '#E9EDEF',
   },
   timestamp: {
     fontSize: 12,
-    color: '#666',
+    color: '#8696A0',
   },
   lastMessage: {
     fontSize: 14,
-    color: '#666',
+    color: '#8696A0',
   },
   emptyContainer: {
     flex: 1,
@@ -198,13 +199,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: '500',
+    color: '#8696A0',
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    color: '#667781',
     marginTop: 4,
   },
 });

@@ -35,11 +35,11 @@ const MainStack = () => (
       component={ChatScreen}
       options={{
         headerStyle: {
-          backgroundColor: '#007AFF',
+          backgroundColor: '#202C33',
         },
-        headerTintColor: 'white',
+        headerTintColor: '#E9EDEF',
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '500',
         },
       }}
     />
@@ -62,7 +62,7 @@ export const AppNavigator: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#25D366" />
       </View>
     );
   }
@@ -79,6 +79,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0a0a0a',
   },
 });

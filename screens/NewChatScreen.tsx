@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { db, Profile } from '../utils/database';
+import { prisma, Profile } from '../utils/prisma';
 import { useChats } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 
@@ -35,7 +35,7 @@ export const NewChatScreen: React.FC<NewChatScreenProps> = ({ navigation }) => {
     if (searchQuery.trim()) {
       const filtered = users.filter(u => 
         u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.full_name && u.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
+        (u.fullName && u.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredUsers(filtered);
     } else {
@@ -45,7 +45,13 @@ export const NewChatScreen: React.FC<NewChatScreenProps> = ({ navigation }) => {
 
   const fetchUsers = async () => {
     try {
-      const profiles = await db.getAllProfiles(user?.id);
+      const profiles = await prisma.profile.findMany({
+        where: {
+          NOT: {
+            id: user?.id
+          }
+        }
+      });
       setUsers(profiles);
       setFilteredUsers(profiles);
     } catch (error) {
@@ -63,7 +69,7 @@ export const NewChatScreen: React.FC<NewChatScreenProps> = ({ navigation }) => {
       if (chat) {
         navigation.replace('Chat', { 
           chatId: chat.id, 
-          chatName: otherUser.full_name || otherUser.username 
+          chatName: otherUser.fullName || otherUser.username 
         });
       }
     } catch (error) {
@@ -82,13 +88,13 @@ export const NewChatScreen: React.FC<NewChatScreenProps> = ({ navigation }) => {
     >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>
-          {(item.full_name || item.username).charAt(0).toUpperCase()}
+          {(item.fullName || item.username).charAt(0).toUpperCase()}
         </Text>
       </View>
       
       <View style={styles.userInfo}>
         <Text style={styles.userName}>
-          {item.full_name || item.username}
+          {item.fullName || item.username}
         </Text>
         <Text style={styles.userHandle}>@{item.username}</Text>
       </View>
