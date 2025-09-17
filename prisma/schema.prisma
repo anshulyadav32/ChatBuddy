@@ -1,0 +1,141 @@
+// Prisma schema for WhatsApp Clone Chat App
+// Designed for Neon PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User authentication and account management
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  emailVerified     Boolean   @default(false) @map("email_verified")
+  verificationToken String?   @map("verification_token")
+  resetToken        String?   @map("reset_token")
+  resetTokenExpires DateTime? @map("reset_token_expires")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  profile      Profile?
+  sessions     UserSession[]
+  sentMessages Message[]
+  chatMembers  ChatParticipant[]
+
+  @@map("users")
+}
+
+// User profiles and public information
+model Profile {
+  id        String    @id @db.Uuid
+  username  String    @unique
+  fullName  String?   @map("full_name")
+  avatarUrl String?   @map("avatar_url")
+  lastSeen  DateTime? @map("last_seen")
+  isOnline  Boolean   @default(false) @map("is_online")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Chat rooms (both direct and group chats)
+model Chat {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String?
+  isGroup       Boolean   @default(false) @map("is_group")
+  avatarUrl     String?   @map("avatar_url")
+  lastMessage   String?   @map("last_message")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  participants ChatParticipant[]
+  messages     Message[]
+
+  @@map("chats")
+}
+
+// Many-to-many relationship between users and chats
+model ChatParticipant {
+  id       String              @id @default(uuid()) @db.Uuid
+  chatId   String              @map("chat_id") @db.Uuid
+  userId   String              @map("user_id") @db.Uuid
+  role     ChatParticipantRole @default(MEMBER)
+  isMuted  Boolean             @default(false) @map("is_muted")
+  joinedAt DateTime            @default(now()) @map("joined_at")
+
+  // Relations
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@map("chat_participants")
+}
+
+// Chat messages
+model Message {
+  id          String      @id @default(uuid()) @db.Uuid
+  chatId      String      @map("chat_id") @db.Uuid
+  senderId    String      @map("sender_id") @db.Uuid
+  content     String
+  messageType MessageType @default(TEXT) @map("message_type")
+  isEdited    Boolean     @default(false) @map("is_edited")
+  replyToId   String?     @map("reply_to_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  chat     Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo  Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies  Message[] @relation("MessageReplies")
+
+  @@index([chatId, createdAt])
+  @@map("messages")
+}
+
+// JWT session management
+model UserSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  lastUsed  DateTime @default(now()) @map("last_used")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+// Enums
+enum ChatParticipantRole {
+  ADMIN
+  MEMBER
+
+  @@map("chat_participant_role")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  AUDIO
+
+  @@map("message_type")
+}
