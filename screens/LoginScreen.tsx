@@ -122,7 +122,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        Alert.alert('Google Sign In Error', (error as any)?.message || 'Google sign in failed');
+        Alert.alert('Google Sign In Error', error);
       }
     } catch (err) {
       Alert.alert('Error', 'Google sign in failed. Please try again.');
@@ -133,7 +133,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithApple();
       if (error) {
-        Alert.alert('Apple Sign In Error', (error as any)?.message || 'Apple sign in failed');
+        Alert.alert('Apple Sign In Error', error);
       }
     } catch (err) {
       Alert.alert('Error', 'Apple sign in failed. Please try again.');

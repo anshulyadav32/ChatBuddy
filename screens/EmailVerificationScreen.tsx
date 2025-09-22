@@ -8,16 +8,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StackScreenProps } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
+import { AuthStackParamList } from '../navigation/AppNavigator';
 
-interface EmailVerificationScreenProps {
-  navigation: any;
-  route: {
-    params: {
-      email: string;
-    };
-  };
-}
+type EmailVerificationScreenProps = StackScreenProps<AuthStackParamList, 'EmailVerification'>;
 
 export const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ 
   navigation, 

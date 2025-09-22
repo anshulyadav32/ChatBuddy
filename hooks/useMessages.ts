@@ -16,7 +16,11 @@ export const useMessages = (chatId: string) => {
         const messageList = await prisma.message.findMany({
           where: { chatId },
           include: {
-            sender: true
+            sender: {
+              include: {
+                profile: true,
+              },
+            },
           },
           orderBy: { createdAt: 'asc' }
         });
@@ -34,12 +38,16 @@ export const useMessages = (chatId: string) => {
     const interval = setInterval(async () => {
       try {
         const messageList = await prisma.message.findMany({
-          where: { chatId },
-          include: {
-            sender: true
-          },
-          orderBy: { createdAt: 'asc' }
-        });
+            where: { chatId },
+            include: {
+              sender: {
+                include: {
+                  profile: true,
+                },
+              },
+            },
+            orderBy: { createdAt: 'asc' }
+          });
         setMessages(messageList);
       } catch (error) {
         console.error('Error polling messages:', error);
@@ -63,7 +71,11 @@ export const useMessages = (chatId: string) => {
           messageType: messageType.toUpperCase() as MessageType
         },
         include: {
-          sender: true
+          sender: {
+            include: {
+              profile: true,
+            },
+          },
         }
       });
       

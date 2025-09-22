@@ -12,19 +12,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StackScreenProps } from '@react-navigation/stack';
 import { useMessages } from '../hooks/useMessages';
 import { useAuth } from '../hooks/useAuth';
-import { Message, MessageWithSender } from '../utils/prisma';
+import { MessageWithSender } from '../utils/prisma';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
-interface ChatScreenProps {
-  route: {
-    params: {
-      chatId: string;
-      chatName?: string;
-    };
-  };
-  navigation: any;
-}
+type ChatScreenProps = StackScreenProps<RootStackParamList, 'Chat'>;
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
   const { chatId, chatName } = route.params;
@@ -90,7 +84,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
       ]}>
         {!isOwnMessage && (
           <Text style={styles.senderName}>
-            {item.sender?.fullName || item.sender?.username || 'Unknown'}
+            {item.sender?.profile?.fullName || item.sender?.email || 'Unknown'}
           </Text>
         )}
         

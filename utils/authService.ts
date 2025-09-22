@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from './prisma';
 import type { User, Profile, UserSession } from './prisma';
@@ -28,8 +28,8 @@ export interface SignUpData {
 }
 
 export class AuthService {
-  private static JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-key';
-  private static JWT_EXPIRES_IN = '7d';
+  private static readonly JWT_SECRET: string = process.env.JWT_SECRET || 'your-jwt-secret-key';
+  private static readonly JWT_EXPIRES_IN: string = '7d';
 
   // Sign up new user
   static async signUp(data: SignUpData): Promise<AuthResponse> {
@@ -230,8 +230,8 @@ export class AuthService {
   private static generateToken(userId: string): string {
     return jwt.sign(
       { userId },
-      this.JWT_SECRET,
-      { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions
+      this.JWT_SECRET as string,
+      { expiresIn: this.JWT_EXPIRES_IN as string } as jwt.SignOptions
     );
   }
 
