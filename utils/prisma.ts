@@ -1,23 +1,29 @@
-import { PrismaClient } from '../lib/generated/prisma';
-import type {
+// Use web-compatible database layer instead of native Prisma client
+import { 
+  webDatabase as prismaClient,
   User,
   Profile,
   Chat,
-  ChatParticipant,
   Message,
   UserSession,
-  ChatParticipantRole,
+  ChatParticipant,
   MessageType,
-} from '../lib/generated/prisma';
+  MessageWithSender
+} from './webDatabase';
 
-// Create Prisma client instance
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+export type {
+  User,
+  Profile,
+  Chat,
+  Message,
+  UserSession,
+  ChatParticipant,
+  MessageType,
+  MessageWithSender
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+// Export the web-compatible database instance
+export const prisma = prismaClient;
 
 // Export types for use in components
 export type {
