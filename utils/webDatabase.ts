@@ -73,6 +73,11 @@ export enum MessageType {
   VIDEO = 'VIDEO'
 }
 
+export enum ChatParticipantRole {
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER'
+}
+
 // Mock data storage for web environment
 class WebDatabaseStorage {
   private users: Map<string, User> = new Map();
@@ -81,17 +86,27 @@ class WebDatabaseStorage {
   private messages: Map<string, Message> = new Map();
   private sessions: Map<string, UserSession> = new Map();
   private participants: Map<string, ChatParticipant> = new Map();
+  private initialized = false;
 
   constructor() {
     this.initializeMockData();
   }
 
-  private initializeMockData() {
+  private async initializeMockData() {
+    if (this.initialized) return;
+    
     // Create some mock users and profiles for demo
+    // For web environment, we'll use a simple hash that matches our bcrypt fallback
+    const encoder = new TextEncoder();
+    const data = encoder.encode('password123' + 'salt');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
     const mockUser: User = {
       id: 'user-1',
       email: 'demo@example.com',
-      passwordHash: '$2b$10$mockhashedpassword',
+      passwordHash: passwordHash,
       emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -108,6 +123,13 @@ class WebDatabaseStorage {
 
     this.users.set(mockUser.id, mockUser);
     this.profiles.set(mockProfile.id, mockProfile);
+    this.initialized = true;
+  }
+
+  private async ensureInitialized() {
+    if (!this.initialized) {
+      await this.initializeMockData();
+    }
   }
 
   // User operations
@@ -123,6 +145,7 @@ class WebDatabaseStorage {
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
+    await this.ensureInitialized();
     for (const user of this.users.values()) {
       if (user.email === email) return user;
     }
@@ -144,6 +167,7 @@ class WebDatabaseStorage {
 
   // Profile operations
   async findProfileById(id: string): Promise<Profile | null> {
+    await this.ensureInitialized();
     return this.profiles.get(id) || null;
   }
 

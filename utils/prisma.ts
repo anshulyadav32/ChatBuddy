@@ -8,6 +8,7 @@ import {
   UserSession,
   ChatParticipant,
   MessageType,
+  ChatParticipantRole,
   MessageWithSender
 } from './webDatabase';
 
